@@ -1,0 +1,38 @@
+version: "3.0"
+
+services:
+    nginx:
+        build:
+            context: docker/nginx
+        ports:
+            - "9915:80"
+        volumes:
+            - ./:/app
+        depends_on:
+            -   php-fpm
+    php-fpm:
+        build:
+            context: docker/php-fpm
+        volumes:
+            -   ./:/app
+    db:
+        image: mysql:8
+        ports:
+            - "3309:3306"
+        environment:
+            MYSQL_DATABASE: rent
+            MYSQL_USER: dbuser
+            MYSQL_PASSWORD: root
+            MYSQL_ROOT_PASSWORD: root
+        volumes:
+            - db:/var/lib/mysql
+    phpmyadmin:
+        image: phpmyadmin
+        environment:
+            PMA_HOST: db
+            PMA_PORT: 3306
+            UPLOAD_LIMIT: 300M
+        ports:
+            - "9910:80"
+volumes:
+    db:
