@@ -1,6 +1,6 @@
 .idea
 
-app/cache/*
-app/image/*
+App/cache
+App/image
 
-app/vendor
+vendor

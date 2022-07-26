@@ -8,10 +8,6 @@ abstract class ParserFactoryAbstract
 {
     public function create(string $parserName) : Parser
     {
-
-        $namespace = 'App\Parsers\\' . $parserName;
-
-        return new $namespace();
-
+        return new ('App\Parsers\\' . $parserName);
     }
 }

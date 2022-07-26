@@ -3,7 +3,7 @@
 
 namespace App\Parsers;
 
-class ParserFactory extends ParserFactoryAbstract
-{
+use App\DB\DBParser;
 
-}
+
+class ParserFactory extends ParserFactoryAbstract { }

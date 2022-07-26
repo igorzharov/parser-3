@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Functions;
 
-class Helper {
+trait Helper {
 
-    public static function curl(string $url, $referer = 'http://www.google.com') : string
-    {
+    public function curl(string $url, $referer = 'http://www.google.com'): string {
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -16,10 +16,11 @@ class Helper {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $data = curl_exec($ch);
         curl_close($ch);
+
         return $data;
     }
 
-    public static function getHtml(string $url, string $parserName) : string {
+    public function downloadHtml(string $url, string $parserName): string {
 
         $cacheFolder = 'cache' . '/' . $parserName . '/';
 
@@ -33,10 +34,59 @@ class Helper {
             return file_get_contents($file);
         }
 
-        $html = self::curl($url);
+        $html = $this->curl($url);
 
         file_put_contents($file, $html);
 
         return $html;
     }
+
+    public function getHtml(string $url): string {
+
+        return $this->curl($url);
+    }
+
+    public function downloadImage(string $url, string $parserName): string {
+
+        $imageFolder = 'image' . '/' . $parserName . '/';
+
+        if (!file_exists($imageFolder)) {
+            mkdir($imageFolder, 0777, true);
+        }
+
+        $file = $imageFolder . md5($url) . '.jpg';
+
+        if (!file_exists($file)) {
+            file_put_contents($file, file_get_contents($url));
+        }
+
+        return 'catalog/' . $file;
+    }
+
+    public function stringToNormal(string $string): string {
+
+        $string = trim($string);
+
+        $string = str_replace(' ', '___', $string);
+
+        $string = preg_replace('/[^\w_]+/u', '', $string);
+
+        $string = str_replace('___', ' ', $string);
+
+        return mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+    }
+
+    public function clearCache(string $parserClassName, string $cacheFolder) {
+
+        $files = glob('cache/' . $parserClassName . '/' . $cacheFolder . '/*');
+
+        var_dump($files);
+
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        }
+    }
+
 }
