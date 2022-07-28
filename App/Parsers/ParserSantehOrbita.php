@@ -29,7 +29,7 @@ class ParserSantehOrbita extends Parser {
 
             $url = $this->url . $node->filter('.intec-section-name')->attr('href');
 
-            $this->db->insert('relations', ['title' => $title, 'url' => $url]);
+            $this->db->insert('categories', ['title' => $title, 'url' => $url, 'parser_class' => $this->parserClassName]);
 
             $this->getLogCategory($title);
         });
@@ -37,7 +37,7 @@ class ParserSantehOrbita extends Parser {
 
     private function parserChildCategories() {
 
-        $categories = $this->db->selectAll('relations', $this->parserClassName, '*');
+        $categories = $this->db->selectAll('categories', $this->parserClassName, '*');
 
         $node = '.intec-sections-tile.row.auto-clear .col-lg-3';
 
@@ -63,7 +63,7 @@ class ParserSantehOrbita extends Parser {
 
                     $parent_id = $category['category_id'];
 
-                    $this->db->insert('relations', ['parent_id' => $parent_id, 'title' => $title, 'url' => $url,]);
+                    $this->db->insert('categories', ['parent_id' => $parent_id, 'title' => $title, 'url' => $url, 'parser_class' => $this->parserClassName]);
 
                     $this->getLogCategory($title);
                 });
@@ -71,35 +71,28 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    private function parserRelations() {
+    private function parserRelations($table) {
 
         $categories = $this->db->selectAll('categories', $this->parserClassName);
 
         foreach ($categories as $category) {
             $url = $category['url'] . '?PAGEN_1=';
 
-            $html = $this->downloadHtml($url . '1', $this->parserClassName . '/relations');
+            $counter = 1;
+
+            $html = $this->downloadHtml($url . $counter, $this->parserClassName . '/relations');
 
             $crawler = new Crawler($html);
-
-            $crawler->filter('.intec-sections-tile.row')->count();
 
             if ($crawler->filter('.intec-sections-tile.row')->count() > 0) {
                 continue;
             }
 
+            $this->relationCrawler($table, $crawler, $counter, $category);
+
             $pagination = $crawler->filter('.bx-pagination-container')->count();
 
-            $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($category, $url) {
-
-                $this->db->insert('relations', ['category_id' => $category['category_id'], 'category_url' => $url . '1', 'product_url' => $this->url . $node->filter('.element-name a')->attr('href')]);
-
-                $this->getLogRelation($node->filter('.element-name a')->attr('href'));
-            });
-
             if ($pagination) {
-                $counter = 1;
-
                 start:
 
                 $next = $crawler->filter('.bx-pag-next a')->count();
@@ -111,17 +104,26 @@ class ParserSantehOrbita extends Parser {
 
                     $crawler = new Crawler($html);
 
-                    $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($counter, $category, $url) {
-
-                        $this->db->insert('relations', ['category_id' => $category['category_id'], 'category_url' => $url . $counter, 'product_url' => $this->url . $node->filter('.element-name a')->attr('href')]);
-
-                        $this->getLogRelation($node->filter('.element-name a')->attr('href'));
-                    });
+                    $this->relationCrawler($table, $crawler, $counter, $category);
 
                     goto start;
                 }
             }
         }
+    }
+
+    private function relationCrawler($table, $crawler, $counter, $category) {
+
+        $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($table, $counter, $category) {
+
+            $url = $category['url'] . '?PAGEN_1=';
+
+            $productUrl = $this->url . $node->filter('.element-name a')->attr('href');
+
+            $this->db->insert($table, ['category_id' => $category['category_id'], 'category_url' => $url . $counter, 'product_url' => $productUrl, 'parser_class' => $this->parserClassName]);
+
+            $this->getLogRelation($productUrl);
+        });
     }
 
     private function parserProducts() {
@@ -133,8 +135,6 @@ class ParserSantehOrbita extends Parser {
 
             $crawler = new Crawler($html);
 
-            var_dump($relation['product_url']);
-
             $title = $this->getTitle($crawler);
             $description = $this->getDescription($crawler);
             $price = $this->getPrice($crawler);
@@ -145,32 +145,31 @@ class ParserSantehOrbita extends Parser {
                 $status = 0;
             }
 
-            $this->db->insert('relations', ['title' => $title, 'description' => $description, 'price' => $price, 'image' => $image, 'product_url' => $relation['product_url'], 'parser_class' => $this->parserClassName, 'is_parsed' => 1, 'is_update' => 1, 'status' => $status]);
+            // SQL
+            $this->db->insert('products', ['title' => $title, 'description' => $description, 'price' => $price, 'image' => $image, 'product_url' => $relation['product_url'], 'parser_class' => $this->parserClassName, 'is_parsed' => 0, 'is_update' => 0, 'status' => $status]);
 
+            // SQL
+            $this->db->update('relations', ['is_parsed' => 1], ['product_id[=]' => $relation['product_id']]);
+
+            // LOG
             $this->getLogProduct($title);
         }
     }
 
-    public function getCategories(): array {
+    public function getCategories() {
 
         $this->parserCategories();
         $this->parserChildCategories();
-
-        return $this->db->selectAll('relations', $this->parserClassName);
     }
 
-    public function getRelations(): array {
+    public function getRelations(string $table) {
 
-        $this->parserRelations();
-
-        return $this->db->selectAll('relations', $this->parserClassName);
+        $this->parserRelations($table);
     }
 
-    public function getProducts(): array {
+    public function getProducts() {
 
         $this->parserProducts();
-
-        return $this->db->selectAll('products', $this->parserClassName);
     }
 
     public function getTitle(Crawler $crawler): string {

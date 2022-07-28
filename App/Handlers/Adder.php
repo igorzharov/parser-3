@@ -9,12 +9,15 @@ use App\Functions\Helper;
 use App\Functions\Logger;
 use App\Parsers\ParserFactory;
 
+use Rogervila\ArrayDiffMultidimensional;
+
 
 class Adder {
 
     private DBParser $db;
 
     public function __construct() {
+
         $this->db = new DBParser();
     }
 
@@ -22,35 +25,77 @@ class Adder {
 
     use Logger;
 
+
     public function adder() {
 
         $parserClassName = 'ParserSantehOrbita';
-
-        $parserRelations = $this->db->selectAll('relations', '');
 
         $parser = new ParserFactory();
 
         $parser = $parser->create($parserClassName);
 
-        $this->clearCache($parserClassName, 'relations');
+//        $this->clearCache($parserClassName, 'relations');
 
-//        $remoteRelations = $parser->getRelations();
+//        $this->db->clear('temp_relations', $parserClassName);
 
-//        $newRelations = array_diff($remoteRelations, $parserRelations);
+//        $parser->getRelations('temp_relations');
 
-//        var_dump($newRelations);
+        // PARSER
 
-//        foreach ($newRelations as $newRelation) {
-//
-//            $this->db->insert('relations', [
-//                'category_id' => $newRelation['category_id'],
-//                'category_url' => $url . $counter,
-//                'product_url' => $this->url . $node->filter('.element-name a')->attr('href')
-//            ]);
-//
-//        }
+        $parserRelations = $this->db->selectWhere('relations', ['category_id', 'product_url', 'parser_class'], ['is_parsed[=]' => 1], $parserClassName);
 
-//        $parser->getProducts();
+        $parserRelations = array_map('json_encode', $parserRelations);
+
+        // REMOTE
+
+        $remoteRelations = $this->db->selectWhere('temp_relations', ['category_id', 'product_url', 'parser_class'], [], $parserClassName);
+
+        $remoteRelations = array_map('json_encode', $remoteRelations);
+
+//      ARRAY DIFFERENCE
+
+        $newRelations = $this->jsonToArray(array_diff($remoteRelations, $parserRelations));
+
+        $oldRelations = $this->jsonToArray(array_diff($parserRelations, $remoteRelations));
+
+        foreach ($newRelations as $index => $newRelation) {
+            var_dump($newRelation);
+        }
+
+        $this->addRelations($newRelations);
+
+        $this->disableRelations($oldRelations);
+
+    }
+
+    private function disableRelations(array $oldRelations) {
+
+        foreach ($oldRelations as $oldRelation) {
+
+            $this->db->update('relations', ['status' => 0], ['product_url[=]' => $oldRelation['product_url']]);
+
+            $this->getLogDisableProduct($oldRelation['product_url']);
+
+        }
+
+    }
+
+    private function addRelations(array $newRelations) {
+
+        foreach ($newRelations as $index => $newRelation) {
+
+            $newRelation = array_merge($newRelation, ['status' => 1]);
+
+            $this->db->insert('relations', $newRelation);
+
+            $this->getLogRelation($newRelation['product_url']);
+        }
+
+    }
+
+    private function jsonToArray(array $array) : array {
+
+        return array_map(function($item) {return json_decode($item, true);}, $array);
 
     }
 

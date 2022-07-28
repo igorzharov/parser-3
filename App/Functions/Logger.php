@@ -31,5 +31,9 @@ trait Logger {
         echo 'Пропустил товар - ' . $title . PHP_EOL;
     }
 
+    protected function getLogDisableProduct(string $title)
+    {
+        echo 'Отключил товар - ' . $title . PHP_EOL;
+    }
 
 }

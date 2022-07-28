@@ -22,7 +22,7 @@ trait Helper {
 
     public function downloadHtml(string $url, string $parserName): string {
 
-        $cacheFolder = 'cache' . '/' . $parserName . '/';
+        $cacheFolder = 'App/cache' . '/' . $parserName . '/';
 
         if (!file_exists($cacheFolder)) {
             mkdir($cacheFolder, 0777, true);
@@ -48,7 +48,7 @@ trait Helper {
 
     public function downloadImage(string $url, string $parserName): string {
 
-        $imageFolder = 'image' . '/' . $parserName . '/';
+        $imageFolder = 'App/image' . '/' . $parserName . '/';
 
         if (!file_exists($imageFolder)) {
             mkdir($imageFolder, 0777, true);
@@ -78,9 +78,7 @@ trait Helper {
 
     public function clearCache(string $parserClassName, string $cacheFolder) {
 
-        $files = glob('cache/' . $parserClassName . '/' . $cacheFolder . '/*');
-
-        var_dump($files);
+        $files = glob('App/cache/' . $parserClassName . '/' . $cacheFolder . '/*');
 
         foreach ($files as $file) {
             if (is_file($file)) {

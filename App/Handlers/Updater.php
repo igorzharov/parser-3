@@ -16,6 +16,7 @@ class Updater {
     private DBParser $db;
 
     public function __construct() {
+
         $this->db = new DBParser();
     }
 
@@ -23,12 +24,12 @@ class Updater {
 
     use Logger;
 
+
     public function updater() {
 
         $products = $this->db->selectAll('products', '');
 
         foreach ($products as $product) {
-
             $productId = $product['product_id'];
 
             $parserType = $product['parser_class'];
@@ -58,22 +59,13 @@ class Updater {
             $hashParser = md5($titleParser . $descriptionParser . $priceParser);
 
             if ($hashRemote != $hashParser) {
-
-                $this->db->updateProduct('products', [
-                    'title' => $titleRemote,
-                    'description' => $descriptionRemote,
-                    'price' => $priceRemote,
-                    'date_modify' => 'NOW()'
-                ], $productId);
+                $this->db->updateProduct('products', ['title' => $titleRemote, 'description' => $descriptionRemote, 'price' => $priceRemote, 'date_modify' => 'NOW()'], $productId);
 
                 $this->getLogUpdateProduct($titleRemote);
-
             }
 
             $this->getLogPassProduct($titleParser);
-
         }
-
     }
 
 }

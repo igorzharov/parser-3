@@ -4,7 +4,8 @@
         "symfony/css-selector": "^6.1",
         "catfan/medoo": "^2.1",
       "ext-pdo": "*",
-      "ext-curl": "*"
+      "ext-curl": "*",
+        "rogervila/array-diff-multidimensional": "^2.1"
     },
     "autoload": {
       "psr-4": { "App\\": "App/"}
