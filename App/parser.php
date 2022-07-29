@@ -6,11 +6,9 @@ use App\Parsers\ParserFactory;
 
 require_once 'vendor/autoload.php';
 
-$parser = new ParserFactory();
-
 $parserClassName = 'ParserSantehOrbita';
 
-$parser = $parser->create($parserClassName);
+$parser = ParserFactory::from($parserClassName)->create();
 
 $parser->clearAll($parserClassName);
 
