@@ -63,7 +63,9 @@ class Updater
                 $this->getLogUpdateProduct($titleRemote);
             }
 
-            $this->getLogPassProduct($titleParser);
+            if ($hashRemote == $hashParser) {
+                $this->getLogPassProduct($titleParser);
+            }
         }
     }
 
