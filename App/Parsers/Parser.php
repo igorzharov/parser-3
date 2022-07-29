@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Parsers;
 
 use App\DB\DBParser;
-use App\Services\Helper;
 use App\Services\LoggerService;
 use App\Helpers\ArrayFromJson;
-use App\Helpers\ClearCache;
 use Symfony\Component\DomCrawler\Crawler;
 
 abstract class Parser
@@ -22,9 +20,6 @@ abstract class Parser
     }
 
     use LoggerService;
-
-    use Helper;
-
     use ArrayFromJson;
 
     abstract public function getCategories();

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Handlers;
 
 use App\DB\DBParser;
-use App\Services\Helper;
+use App\Helpers\GetHtml;
 use App\Services\LoggerService;
 use App\Parsers\ParserFactory;
 use Symfony\Component\DomCrawler\Crawler;
@@ -19,9 +19,8 @@ class Updater
         $this->db = new DBParser();
     }
 
-    use Helper;
-
     use LoggerService;
+    use GetHtml;
 
     public function updater()
     {
@@ -32,11 +31,9 @@ class Updater
         foreach ($products as $product) {
             $productId = $product['product_id'];
 
-            $parserType = $product['parser_class'];
+            $parserClassName = $product['parser_class'];
 
-            $parser = new ParserFactory();
-
-            $parser = $parser->create($parserType);
+            $parser = ParserFactory::from($parserClassName)->create();
 
             $html = $this->getHtml($product['product_url']);
 
