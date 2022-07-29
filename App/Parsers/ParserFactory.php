@@ -4,7 +4,14 @@ namespace App\Parsers;
 
 use App\DB\DBParser;
 
+enum ParserFactory: string
+{
+    case SANTEHORBITA = 'ParserSantehOrbita';
 
-class ParserFactory extends ParserFactoryAbstract {
-
+    public function create(): Parser
+    {
+        return match ($this) {
+            self::SANTEHORBITA => new ParserSantehOrbita(),
+        };
+    }
 }

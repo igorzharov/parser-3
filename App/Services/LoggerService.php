@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Functions;
+namespace App\Services;
 
-trait Logger {
+trait LoggerService
+{
 
     protected function getLogCategory(string $title)
     {

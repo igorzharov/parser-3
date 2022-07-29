@@ -4,23 +4,29 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
+use App\Helpers\DownloadHtml;
+use App\Helpers\DownloadImage;
+use App\Helpers\StringToNormal;
 use Symfony\Component\DomCrawler\Crawler;
 
+class ParserSantehOrbita extends Parser
+{
 
-class ParserSantehOrbita extends Parser {
+    use DownloadHtml;
+    use DownloadImage;
+    use StringToNormal;
 
     private $parserClassName = 'ParserSantehOrbita';
 
     private $url = 'https://www.sanopt74.ru';
 
-    private function parserCategories() {
-
+    private function parserCategories()
+    {
         $html = $this->downloadHtml('https://www.sanopt74.ru/catalog/', $this->parserClassName . '/categories');
 
         $crawler = new Crawler($html);
 
         $crawler->filter('.intec-sections-tile.row.auto-clear .col-lg-3')->each(function (Crawler $node) {
-
             $title = $node->filter('.intec-section-name')->text();
 
             $title = explode(' (', $title)[0];
@@ -35,8 +41,8 @@ class ParserSantehOrbita extends Parser {
         });
     }
 
-    private function parserChildCategories() {
-
+    private function parserChildCategories()
+    {
         $categories = $this->db->selectAll('categories', $this->parserClassName, '*');
 
         $node = '.intec-sections-tile.row.auto-clear .col-lg-3';
@@ -52,7 +58,6 @@ class ParserSantehOrbita extends Parser {
 
             if ($countCategories) {
                 $crawler->filter($node)->each(function (Crawler $node, $i) use ($category) {
-
                     $title = $node->filter('.intec-section-name')->text();
 
                     $title = explode(' (', $title)[0];
@@ -71,8 +76,8 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    private function parserRelations($table) {
-
+    private function parserRelations(string $fillableTable)
+    {
         $categories = $this->db->selectAll('categories', $this->parserClassName);
 
         foreach ($categories as $category) {
@@ -88,7 +93,7 @@ class ParserSantehOrbita extends Parser {
                 continue;
             }
 
-            $this->relationCrawler($table, $crawler, $counter, $category);
+            $this->relationCrawler($fillableTable, $crawler, $counter, $category);
 
             $pagination = $crawler->filter('.bx-pagination-container')->count();
 
@@ -104,7 +109,7 @@ class ParserSantehOrbita extends Parser {
 
                     $crawler = new Crawler($html);
 
-                    $this->relationCrawler($table, $crawler, $counter, $category);
+                    $this->relationCrawler($fillableTable, $crawler, $counter, $category);
 
                     goto start;
                 }
@@ -112,23 +117,26 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    private function relationCrawler($table, $crawler, $counter, $category) {
-
-        $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($table, $counter, $category) {
-
+    private function relationCrawler($fillableTable, $crawler, $counter, $category)
+    {
+        $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($fillableTable, $counter, $category) {
             $url = $category['url'] . '?PAGEN_1=';
 
             $productUrl = $this->url . $node->filter('.element-name a')->attr('href');
 
-            $this->db->insert($table, ['category_id' => $category['category_id'], 'category_url' => $url . $counter, 'product_url' => $productUrl, 'parser_class' => $this->parserClassName]);
+            $this->db->insert($fillableTable, ['category_id' => $category['category_id'], 'category_url' => $url . $counter, 'product_url' => $productUrl, 'parser_class' => $this->parserClassName]);
 
             $this->getLogRelation($productUrl);
         });
     }
 
-    private function parserProducts() {
+    private function parserProducts()
+    {
+        $selectColumns = ['product_id', 'category_id', 'category_url', 'product_url', 'parser_class', 'is_parsed', 'status'];
 
-        $relations = $this->db->selectAll('relations', $this->parserClassName);
+        $where = ['is_parsed[=]' => 0, 'status' => 1];
+
+        $relations = $this->db->select('relations', $selectColumns, $where);
 
         foreach ($relations as $relation) {
             $html = $this->downloadHtml($relation['product_url'], $this->parserClassName . '/products');
@@ -145,8 +153,10 @@ class ParserSantehOrbita extends Parser {
                 $status = 0;
             }
 
+            $insertColumns = ['product_id' => $relation['product_id'], 'title' => $title, 'description' => $description, 'price' => $price, 'image' => $image, 'product_url' => $relation['product_url'], 'parser_class' => $this->parserClassName, 'is_parsed' => 0, 'is_update' => 0, 'status' => $status];
+
             // SQL
-            $this->db->insert('products', ['title' => $title, 'description' => $description, 'price' => $price, 'image' => $image, 'product_url' => $relation['product_url'], 'parser_class' => $this->parserClassName, 'is_parsed' => 0, 'is_update' => 0, 'status' => $status]);
+            $this->db->insert('products', $insertColumns);
 
             // SQL
             $this->db->update('relations', ['is_parsed' => 1], ['product_id[=]' => $relation['product_id']]);
@@ -156,24 +166,24 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    public function getCategories() {
-
+    public function getCategories()
+    {
         $this->parserCategories();
         $this->parserChildCategories();
     }
 
-    public function getRelations(string $table) {
-
-        $this->parserRelations($table);
+    public function getRelations(string $fillableTable)
+    {
+        $this->parserRelations($fillableTable);
     }
 
-    public function getProducts() {
-
+    public function getProducts()
+    {
         $this->parserProducts();
     }
 
-    public function getTitle(Crawler $crawler): string {
-
+    public function getTitle(Crawler $crawler): string
+    {
         try {
             $title = $crawler->filter('.intec-content-wrapper h1')->text();
 
@@ -184,8 +194,8 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    public function getDescription(Crawler $crawler): string {
-
+    public function getDescription(Crawler $crawler): string
+    {
         try {
             return $crawler->filter('#tab-description')->html();
         }
@@ -194,10 +204,12 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    public function getPrice(Crawler $crawler): int {
-
+    public function getPrice(Crawler $crawler): int
+    {
         try {
             $price = $crawler->filter('.item-additional-price .price-СайтРозничные')->text();
+
+            $price = str_replace(' ', '', $price);
 
             $price = $this->stringToNormal($price);
 
@@ -210,8 +222,8 @@ class ParserSantehOrbita extends Parser {
         }
     }
 
-    public function getImage(Crawler $crawler): string {
-
+    public function getImage(Crawler $crawler): string
+    {
         try {
             $url = $this->url . $crawler->filter('.item-bigimage-container .item-bigimage-wrap .item-bigimage')->attr('src');
 
