@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Parsers;
+declare(strict_types=1);
 
-use App\DB\DBParser;
+namespace App\Parsers;
 
 enum ParserFactory: string
 {

@@ -7,11 +7,11 @@ namespace App\DB;
 use Medoo\Medoo;
 use PDO;
 
-class DBParser extends DB
+class DBRemote extends DB
 {
     public function __construct()
     {
-        $pdo = new PDO('mysql:dbname=rent;host=db', 'dbuser', 'root');
+        $pdo = new PDO('mysql:dbname=orbita74-sandbox;host=185.178.45.121', 'user', 'dQ1GyRtYrfgrAELk');
 
         $this->db = new Medoo(['pdo' => $pdo, 'type' => 'mysql']);
     }

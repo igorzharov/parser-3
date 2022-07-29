@@ -11,8 +11,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 abstract class Parser
 {
-
-    protected $db;
+    protected DBParser $db;
 
     public function __construct()
     {
@@ -39,7 +38,6 @@ abstract class Parser
     public function formattingRelations($parserClassName)
     {
         // PARSER RELATIONS
-
         $selectColumns = ['category_id', 'category_url', 'product_url', 'parser_class'];
 
         $oldRelations = $this->db->select('relations', $selectColumns, ['status[=]' => 1, 'parser_class[=]' => $parserClassName]);
