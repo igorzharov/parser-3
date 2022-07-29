@@ -16,9 +16,9 @@ class ParserSantehOrbita extends Parser
     use DownloadImage;
     use StringToNormal;
 
-    private $parserClassName = 'ParserSantehOrbita';
+    private string $parserClassName = 'ParserSantehOrbita';
 
-    private $url = 'https://www.sanopt74.ru';
+    private string $url = 'https://www.sanopt74.ru';
 
     private function parserCategories()
     {
