@@ -25,8 +25,7 @@ class Adder {
 
     use Logger;
 
-
-    public function adder() {
+    public function updateRelations() {
 
         $parserClassName = 'ParserSantehOrbita';
 
@@ -34,61 +33,59 @@ class Adder {
 
         $parser = $parser->create($parserClassName);
 
-//        $this->clearCache($parserClassName, 'relations');
+        $this->clearCache($parserClassName, 'relations');
 
-//        $this->db->clear('temp_relations', $parserClassName);
+        $this->db->clear('new_relations', $parserClassName);
 
-//        $parser->getRelations('temp_relations');
+        $parser->getRelations('new_relations');
 
-        // PARSER
+        // PARSER RELATIONS
 
-        $parserRelations = $this->db->selectWhere('relations', ['category_id', 'product_url', 'parser_class'], ['is_parsed[=]' => 1], $parserClassName);
+        $selectColumns = ['category_id', 'category_url', 'product_url', 'parser_class'];
 
-        $parserRelations = array_map('json_encode', $parserRelations);
+        $oldRelations = $this->db->select('relations', $selectColumns, ['is_parsed[=]' => 1, 'status[=]' => 1, 'parser_class[=]' => $parserClassName]);
 
-        // REMOTE
+        $oldRelations = array_map('json_encode', $oldRelations);
 
-        $remoteRelations = $this->db->selectWhere('temp_relations', ['category_id', 'product_url', 'parser_class'], [], $parserClassName);
+        // REMOTE RELATIONS
 
-        $remoteRelations = array_map('json_encode', $remoteRelations);
+        $newRelations = $this->db->select('new_relations', $selectColumns, []);
+
+        $newRelations = array_map('json_encode', $newRelations);
 
 //      ARRAY DIFFERENCE
 
-        $newRelations = $this->jsonToArray(array_diff($remoteRelations, $parserRelations));
+        $insertRelations = $this->jsonToArray(array_diff($newRelations, $oldRelations));
 
-        $oldRelations = $this->jsonToArray(array_diff($parserRelations, $remoteRelations));
+        $disableRelations = $this->jsonToArray(array_diff($oldRelations, $newRelations));
 
-        foreach ($newRelations as $index => $newRelation) {
-            var_dump($newRelation);
-        }
+        $this->disableRelations($disableRelations);
 
-        $this->addRelations($newRelations);
-
-        $this->disableRelations($oldRelations);
+        $this->insertRelations($insertRelations);
 
     }
 
-    private function disableRelations(array $oldRelations) {
+    private function disableRelations(array $disableRelations) {
 
-        foreach ($oldRelations as $oldRelation) {
+        foreach ($disableRelations as $disableRelation) {
 
-            $this->db->update('relations', ['status' => 0], ['product_url[=]' => $oldRelation['product_url']]);
+            $this->db->update('relations', ['status' => 0], ['product_url[=]' => $disableRelation['product_url']]);
 
-            $this->getLogDisableProduct($oldRelation['product_url']);
+            $this->getLogDisableRelation($disableRelation['product_url']);
 
         }
 
     }
 
-    private function addRelations(array $newRelations) {
+    private function insertRelations(array $insertRelations) {
 
-        foreach ($newRelations as $index => $newRelation) {
+        foreach ($insertRelations as $insertRelation) {
 
-            $newRelation = array_merge($newRelation, ['status' => 1]);
+            $insertRelation = array_merge($insertRelation, ['status' => 1]);
 
-            $this->db->insert('relations', $newRelation);
+            $this->db->insert('relations', $insertRelation);
 
-            $this->getLogRelation($newRelation['product_url']);
+            $this->getLogAddRelation($insertRelation['product_url']);
         }
 
     }

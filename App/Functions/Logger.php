@@ -16,6 +16,16 @@ trait Logger {
         echo 'Спарсил отношение - ' . $title . PHP_EOL;
     }
 
+    protected function getLogAddRelation(string $title)
+    {
+        echo 'Добавил отношение - ' . $title . PHP_EOL;
+    }
+
+    protected function getLogDisableRelation(string $title)
+    {
+        echo 'Отключил отношение - ' . $title . PHP_EOL;
+    }
+
     protected function getLogProduct(string $title)
     {
         echo 'Спарсил товар - ' . $title . PHP_EOL;

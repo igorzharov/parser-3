@@ -41,13 +41,9 @@ class DBParser {
         return $this->db->select($table, '*', ['parser_class[=]' => $parserClassName, 'status[=]' => 1]);
     }
 
-    public function selectWhere(string $table, mixed $columns, array $where, string $parserClassName = ''): array {
+    public function select(string $table, mixed $columns, array $where): array {
 
-        if ($parserClassName == '') {
-            return $this->db->select($table, $columns, $where);
-        }
-
-        return $this->db->select($table, $columns, array_merge($where, ['parser_class[=]' => $parserClassName]));
+        return $this->db->select($table, $columns, $where);
     }
 
     public function createTempTable(string $table) {
