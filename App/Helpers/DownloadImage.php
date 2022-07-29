@@ -8,7 +8,7 @@ trait DownloadImage
 {
     public function downloadImage(string $url, string $parserName): string
     {
-        $imageFolder = 'App/image' . '/' . $parserName . '/';
+        $imageFolder = 'var/image' . '/' . $parserName . '/';
 
         if (!file_exists($imageFolder)) {
             mkdir($imageFolder, 0777, true);

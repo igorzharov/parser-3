@@ -10,7 +10,7 @@ trait DownloadHtml
 
     public function downloadHtml(string $url, string $parserName): string
     {
-        $cacheFolder = 'App/cache' . '/' . $parserName . '/';
+        $cacheFolder = 'var/cache' . '/' . $parserName . '/';
 
         if (!file_exists($cacheFolder)) {
             mkdir($cacheFolder, 0777, true);

@@ -8,7 +8,7 @@ trait ClearCache
 {
     public function clearCache(string $parserClassName, string $cacheFolder)
     {
-        $files = glob('App/cache/' . $parserClassName . '/' . $cacheFolder . '/*');
+        $files = glob('var/cache/' . $parserClassName . '/' . $cacheFolder . '/*');
 
         foreach ($files as $file) {
             if (is_file($file)) {
