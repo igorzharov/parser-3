@@ -55,8 +55,10 @@ class Updater
 
             $hashParser = md5($titleParser . $descriptionParser . $priceParser);
 
+            $updateColumns = ['title' => $titleRemote, 'description' => $descriptionRemote, 'price' => $priceRemote, 'date_modify' => 'NOW()', 'is_update' => 1];
+
             if ($hashRemote != $hashParser) {
-                $this->db->updateProduct('products', ['title' => $titleRemote, 'description' => $descriptionRemote, 'price' => $priceRemote, 'date_modify' => 'NOW()', 'is_update' => 1], $productId);
+                $this->db->update('products', $updateColumns, ['product_id[=]' => $productId]);
 
                 $this->getLogUpdateProduct($titleRemote);
             }
