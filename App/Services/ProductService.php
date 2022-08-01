@@ -41,6 +41,7 @@ class ProductService
 
         foreach ($products as $product) {
             $data[] = [
+                'id' => $product['product_id'],
                 'name' => $product['title'],
                 'description' => $product['description'],
                 'meta_title' => 'Купить ' . $product['title'] . ' в Челябинске - ТЦ ОРБИТА',
@@ -60,8 +61,9 @@ class ProductService
                 'id_external' => $product['product_id'],
                 'store_id' => 0,
                 'layout_id' => 1,
-                'language_id' => 0,
+                'language_id' => 1,
                 'renter_id' => 23,
+                'user_id' => 24,
                 'category_id' => $product['category_id']
             ];
         }

@@ -17,71 +17,109 @@ class ProductSenderRepository
 
     public function addProducts(array $data)
     {
+        $packageData = [];
+
+        $count_add_packages = 0;
+
+        $count_packages = round(count($data) / 100);
+
         foreach ($data as $key) {
             $start = microtime(true);
 
             $product_id = $this->addProduct($key);
 
+            echo 'Отправил Товар ' . $key['id'] . ' - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
+
             $key['product_id'] = $product_id;
 
-            $this->addDescription($key);
-            $this->addImage($key);
-            $this->addCategory($key);
-            $this->addLayout($key);
-            $this->addStore($key);
-            $this->addRenter($key);
+            $packageData[] = $key;
 
-            echo 'Отправил Товар ' . ' - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
+            if ($count_packages == $count_add_packages) {
+                $this->addPackage($packageData);
+                echo '!!! Отправил Пакет - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
+                $packageData = [];
+            }
+
+            if (count($packageData) == 100) {
+                $start = microtime(true);
+                $this->addPackage($packageData);
+                echo '!!! Отправил Пакет - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
+                $packageData = [];
+                $count_add_packages++;
+
+            }
         }
     }
 
     private function addProduct($data): int
     {
-        unset($data['name'], $data['description'], $data['meta_title'], $data['meta_description'], $data['renter_id'], $data['category_id'], $data['store_id'], $data['layout_id'], $data['language_id']);
+        unset($data['id'], $data['name'], $data['description'], $data['meta_title'], $data['meta_description'], $data['renter_id'], $data['category_id'], $data['store_id'], $data['layout_id'], $data['language_id']);
 
         $this->db->insert('oc_product', $data);
 
         return $this->db->id();
     }
 
-    private function addDescription($data)
+    private function addPackage($packageData)
     {
-        $data = ['product_id' => $data['product_id'], 'language_id' => $data['language_id'], 'name' => $data['name'], 'description' => $data['description'], 'meta_title' => $data['meta_title'], 'meta_description' => $data['meta_description']];
+        $this->addDescriptionPackage($packageData);
+        $this->addImagePackage($packageData);
+        $this->addCategoryPackage($packageData);
+        $this->addStorePackage($packageData);
+        $this->addRenterPackage($packageData);
+    }
+
+    private function addDescriptionPackage($packageData)
+    {
+        $data = [];
+
+        foreach ($packageData as $key) {
+            $data[] = ['product_id' => $key['product_id'], 'language_id' => $key['language_id'], 'name' => $key['name'], 'description' => $key['description'], 'meta_title' => $key['meta_title'], 'meta_description' => $key['meta_description']];
+        }
 
         $this->db->insert('oc_product_description', $data);
     }
 
-    private function addImage($data)
+    private function addImagePackage($packageData)
     {
-        $data = ['product_id' => $data['product_id'], 'image' => $data['image'], 'sort_order' => 0];
+        $data = [];
+
+        foreach ($packageData as $key) {
+            $data[] = ['product_id' => $key['product_id'], 'image' => $key['image'], 'sort_order' => 0];
+        }
 
         $this->db->insert('oc_product_image', $data);
     }
 
-    private function addCategory($data)
+    private function addCategoryPackage($packageData)
     {
-        $data = ['product_id' => $data['product_id'], 'category_id' => $data['category_id']];
+        $data = [];
+
+        foreach ($packageData as $key) {
+            $data[] = ['product_id' => $key['product_id'], 'category_id' => $key['category_id']];
+        }
 
         $this->db->insert('oc_product_to_category', $data);
     }
 
-    private function addLayout($data)
+    private function addStorePackage($packageData)
     {
-        $data = ['product_id' => $data['product_id'], 'store_id' => $data['store_id'], 'layout_id' => $data['layout_id']];
+        $data = [];
 
-        $this->db->insert('oc_product_to_layout', $data);
-    }
-
-    private function addStore($data)
-    {
-        $data = ['product_id' => $data['product_id'], 'store_id' => $data['store_id']];
+        foreach ($packageData as $key) {
+            $data[] = ['product_id' => $key['product_id'], 'store_id' => $key['store_id']];
+        }
 
         $this->db->insert('oc_product_to_store', $data);
     }
 
-    private function addRenter($data)
+    private function addRenterPackage($packageData)
     {
-        $data = ['product_id' => $data['product_id'], 'renter_id' => $data['renter_id']];
+        $data = [];
+
+        foreach ($packageData as $key) {
+            $data[] = ['product_id' => $key['product_id'], 'renter_id' => $key['renter_id']];
+        }
 
         $this->db->insert('oc_product_to_renter', $data);
     }
