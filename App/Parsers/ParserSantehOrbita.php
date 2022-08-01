@@ -43,7 +43,9 @@ class ParserSantehOrbita extends Parser
 
     private function parserChildCategories()
     {
-        $categories = $this->db->selectAll('categories', $this->parserClassName, '*');
+        $selectColumns = ['category_id', 'parent_id', 'title', 'description', 'url', 'image', 'parser_class', 'status'];
+
+        $categories = $this->db->select('categories', $selectColumns, ['parser_class' => $this->parserClassName]);
 
         $node = '.intec-sections-tile.row.auto-clear .col-lg-3';
 
@@ -78,7 +80,9 @@ class ParserSantehOrbita extends Parser
 
     private function parserRelations(string $fillableTable)
     {
-        $categories = $this->db->selectAll('categories', $this->parserClassName);
+        $selectColumns = ['category_id', 'parent_id', 'title', 'description', 'url', 'image', 'parser_class', 'status'];
+
+        $categories = $this->db->select('categories', $selectColumns, ['parser_class' => $this->parserClassName]);
 
         foreach ($categories as $category) {
             $url = $category['url'] . '?PAGEN_1=';

@@ -20,9 +20,14 @@ class DB
         return $this->db->update($table, $data, $where);
     }
 
-    public function select(string $table, mixed $columns, array $where, callable $callback = null): array
+    public function select(string $table, array $join = [], mixed $columns = null, array $where = null, callable $callback = null): array
     {
-        return $this->db->select($table, $columns, $where, $callback);
+        return $this->db->select($table, $join, $columns, $where, $callback);
+    }
+
+    public function id() : int
+    {
+        return (int)$this->db->id();
     }
 
     public function clear(string $table, $parserClassName)

@@ -11,7 +11,7 @@ class DBRemote extends DB
 {
     public function __construct()
     {
-        $pdo = new PDO('mysql:dbname=orbita74-sandbox;host=185.178.45.121', 'user', 'dQ1GyRtYrfgrAELk');
+        $pdo = new PDO('mysql:dbname=orbita74-sandbox;host=185.178.45.121;charset=utf8', 'user', 'dQ1GyRtYrfgrAELk');
 
         $this->db = new Medoo(['pdo' => $pdo, 'type' => 'mysql']);
     }

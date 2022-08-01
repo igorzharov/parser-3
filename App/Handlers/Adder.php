@@ -30,12 +30,12 @@ class Adder
         $parserClassName = 'ParserSantehOrbita';
 
         $parser = ParserFactory::from($parserClassName)->create();
-//
-//        $this->clearCache($parserClassName, 'relations');
-//
-//        $this->db->clear('new_relations', $parserClassName);
-//
-//        $parser->getRelations('new_relations');
+
+        $this->clearCache($parserClassName, 'relations');
+
+        $this->db->clear('new_relations', $parserClassName);
+
+        $parser->getRelations('new_relations');
 
         $parser->formattingRelations($parserClassName);
 

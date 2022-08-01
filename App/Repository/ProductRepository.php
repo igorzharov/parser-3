@@ -4,29 +4,32 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\DB\DBRemote;
+use App\DB\DBParser;
 
 class ProductRepository
 {
-    private DBRemote $db;
+    private DBParser $db;
 
     public function __construct()
     {
-        $this->db = new DBRemote();
+        $this->db = new DBParser();
     }
 
     public function getProducts(): array
     {
-        return $this->db->select('products', ['product_id', 'title', 'description', 'price', 'image'], ['is_parsed[=]' => 0, 'status[=]' => 1]);
+        $selectWhere = ['products.is_parsed[=]' => 0, 'products.status[=]' => 1];
+
+        // LEFT JOIN
+
+        return $this->db->select('products', ['[>]relations' => ['product_id' => 'product_id']], ['relations.category_id', 'products.product_id', 'products.title', 'products.description', 'products.price', 'products.image'], $selectWhere);
     }
 
     public function getUpdatedProducts(): array
     {
-        return $this->db->select('products', ['product_id', 'title', 'description', 'price', 'image'], ['is_parsed[=]' => 0, 'is_update[=]' => 1, 'status[=]' => 1]);
-    }
+        $selectWhere = ['products.is_parsed[=]' => 1, 'products.is_update[=]' => 1, 'products.status[=]' => 1];
 
-    public function create(Product $product): Product
-    {
-        $product = $this->db->insert('products', $product);
+        // LEFT JOIN
+
+        return $this->db->select('products', ['[>]relations' => ['product_id' => 'product_id']], ['relations.category_id', 'products.product_id', 'products.title', 'products.description', 'products.price', 'products.image'], $selectWhere);
     }
 }
