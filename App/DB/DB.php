@@ -25,6 +25,16 @@ class DB
         return $this->db->select($table, $join, $columns, $where, $callback);
     }
 
+    public function delete(string $table, array $where)
+    {
+        $this->db->delete($table, $where);
+    }
+
+    public function query(string $query): ?\PDOStatement
+    {
+       return $this->db->query($query);
+    }
+
     public function id() : int
     {
         return (int)$this->db->id();

@@ -21,7 +21,7 @@ class ProductRepository
 
         // LEFT JOIN
 
-        return $this->db->select('products', ['[>]relations' => ['product_id' => 'product_id']], ['relations.category_id', 'products.product_id', 'products.title', 'products.description', 'products.price', 'products.image'], $selectWhere);
+        return $this->db->select('products', ['[>]relations' => ['product_id' => 'product_id']], ['relations.category_id', 'products.product_id', 'products.title', 'products.description', 'products.price', 'products.image', 'products.parser_class'], $selectWhere);
     }
 
     public function getUpdatedProducts(): array
@@ -32,4 +32,5 @@ class ProductRepository
 
         return $this->db->select('products', ['[>]relations' => ['product_id' => 'product_id']], ['relations.category_id', 'products.product_id', 'products.title', 'products.description', 'products.price', 'products.image'], $selectWhere);
     }
+
 }

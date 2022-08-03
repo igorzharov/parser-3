@@ -4,42 +4,55 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Parsers\ParserFactory;
 use App\Repository\ProductRepository;
 use App\Repository\ProductSenderRepository;
 
 class ProductService
 {
-    private ProductRepository $repository;
+    private ProductRepository $productRepository;
 
     private ProductSenderRepository $sender;
 
     public function __construct()
     {
-        $this->repository = new ProductRepository();
+        $this->productRepository = new ProductRepository();
+
         $this->sender = new ProductSenderRepository();
     }
 
-    public function getProducts(): array
-    {
-        return $this->repository->getProducts();
-    }
-
-    public function send()
+    public function send($parserClassName)
     {
         $products = $this->getProducts();
 
-        $data = $this->generateData($products);
+        $start = microtime(true);
+        
+        $data = $this->generateData($products, $parserClassName);
+
+        echo 'Сформировал данные для отправки - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
 
         $this->sender->addProducts($data);
     }
 
-    public function generateData($products): array
+    private function getProducts(): array
+    {
+        return $this->productRepository->getProducts();
+    }
+
+    private function generateData($products, $parserClassName): array
     {
         $dateNow = date('Y-m-d H:i:s');
 
         $data = [];
 
+        $parser = ParserFactory::from($parserClassName)->create();
+
+        $config = $parser->getConfig();
+
+        $configCategories = $config->categoryMatching;
+
         foreach ($products as $product) {
+
             $data[] = [
                 'id' => $product['product_id'],
                 'name' => $product['title'],
@@ -64,7 +77,7 @@ class ProductService
                 'language_id' => 1,
                 'renter_id' => 23,
                 'user_id' => 24,
-                'category_id' => $product['category_id']
+                'category_id' => MapperService::map($product['category_id'], $configCategories)
             ];
         }
 

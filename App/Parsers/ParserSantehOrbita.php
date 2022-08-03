@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
+use App\Config\ParserSantehOrbitaConfig;
 use App\Helpers\DownloadHtml;
 use App\Helpers\DownloadImage;
 use App\Helpers\StringToNormal;
@@ -16,6 +17,15 @@ class ParserSantehOrbita extends Parser
     use DownloadImage;
     use StringToNormal;
 
+    public ParserSantehOrbitaConfig $config;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->config = new ParserSantehOrbitaConfig();
+    }
+
     private string $parserClassName = 'ParserSantehOrbita';
 
     private string $url = 'https://www.sanopt74.ru';
@@ -26,7 +36,8 @@ class ParserSantehOrbita extends Parser
 
         $crawler = new Crawler($html);
 
-        $crawler->filter('.intec-sections-tile.row.auto-clear .col-lg-3')->each(function (Crawler $node) {
+        $crawler->filter('.intec-sections-tile.row.auto-clear .col-lg-3')->each(function (Crawler $node)
+        {
             $title = $node->filter('.intec-section-name')->text();
 
             $title = explode(' (', $title)[0];
@@ -49,7 +60,8 @@ class ParserSantehOrbita extends Parser
 
         $node = '.intec-sections-tile.row.auto-clear .col-lg-3';
 
-        foreach ($categories as $category) {
+        foreach ($categories as $category)
+        {
             $url = $category['url'];
 
             $html = $this->downloadHtml($url, $this->parserClassName . '/categories');
@@ -58,8 +70,10 @@ class ParserSantehOrbita extends Parser
 
             $countCategories = $crawler->filter($node)->count();
 
-            if ($countCategories) {
-                $crawler->filter($node)->each(function (Crawler $node, $i) use ($category) {
+            if ($countCategories)
+            {
+                $crawler->filter($node)->each(function (Crawler $node, $i) use ($category)
+                {
                     $title = $node->filter('.intec-section-name')->text();
 
                     $title = explode(' (', $title)[0];
@@ -84,7 +98,8 @@ class ParserSantehOrbita extends Parser
 
         $categories = $this->db->select('categories', $selectColumns, ['parser_class' => $this->parserClassName]);
 
-        foreach ($categories as $category) {
+        foreach ($categories as $category)
+        {
             $url = $category['url'] . '?PAGEN_1=';
 
             $counter = 1;
@@ -93,7 +108,8 @@ class ParserSantehOrbita extends Parser
 
             $crawler = new Crawler($html);
 
-            if ($crawler->filter('.intec-sections-tile.row')->count() > 0) {
+            if ($crawler->filter('.intec-sections-tile.row')->count() > 0)
+            {
                 continue;
             }
 
@@ -101,12 +117,14 @@ class ParserSantehOrbita extends Parser
 
             $pagination = $crawler->filter('.bx-pagination-container')->count();
 
-            if ($pagination) {
+            if ($pagination)
+            {
                 start:
 
                 $next = $crawler->filter('.bx-pag-next a')->count();
 
-                if ($next) {
+                if ($next)
+                {
                     $counter++;
 
                     $html = $this->downloadHtml($url . $counter, $this->parserClassName . '/relations');
@@ -123,7 +141,8 @@ class ParserSantehOrbita extends Parser
 
     private function relationCrawler($fillableTable, $crawler, $counter, $category)
     {
-        $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($fillableTable, $counter, $category) {
+        $crawler->filter('.intec-catalog-section .catalog-section-element')->each(function (Crawler $node) use ($fillableTable, $counter, $category)
+        {
             $url = $category['url'] . '?PAGEN_1=';
 
             $productUrl = $this->url . $node->filter('.element-name a')->attr('href');
@@ -142,7 +161,8 @@ class ParserSantehOrbita extends Parser
 
         $relations = $this->db->select('relations', $selectColumns, $where);
 
-        foreach ($relations as $relation) {
+        foreach ($relations as $relation)
+        {
             $html = $this->downloadHtml($relation['product_url'], $this->parserClassName . '/products');
 
             $crawler = new Crawler($html);
@@ -153,7 +173,8 @@ class ParserSantehOrbita extends Parser
             $image = $this->getImage($crawler);
             $status = 1;
 
-            if ($price == 0 || $title == '') {
+            if ($price == 0 || $title == '')
+            {
                 $status = 0;
             }
 
@@ -188,29 +209,34 @@ class ParserSantehOrbita extends Parser
 
     public function getTitle(Crawler $crawler): string
     {
-        try {
+        try
+        {
             $title = $crawler->filter('.intec-content-wrapper h1')->text();
 
             return $this->stringToNormal($title);
         }
-        catch (\Exception $exception) {
+        catch (\Exception $exception)
+        {
             return '';
         }
     }
 
     public function getDescription(Crawler $crawler): string
     {
-        try {
+        try
+        {
             return $crawler->filter('#tab-description')->html();
         }
-        catch (\Exception $exception) {
+        catch (\Exception $exception)
+        {
             return '';
         }
     }
 
     public function getPrice(Crawler $crawler): int
     {
-        try {
+        try
+        {
             $price = $crawler->filter('.item-additional-price .price-СайтРозничные')->text();
 
             $price = str_replace(' ', '', $price);
@@ -221,19 +247,22 @@ class ParserSantehOrbita extends Parser
 
             return (int)$price;
         }
-        catch (\Exception $exception) {
+        catch (\Exception $exception)
+        {
             return 0;
         }
     }
 
     public function getImage(Crawler $crawler): string
     {
-        try {
+        try
+        {
             $url = $this->url . $crawler->filter('.item-bigimage-container .item-bigimage-wrap .item-bigimage')->attr('src');
 
             return $this->downloadImage($url, $this->parserClassName);
         }
-        catch (\Exception $exception) {
+        catch (\Exception $exception)
+        {
             return '';
         }
     }

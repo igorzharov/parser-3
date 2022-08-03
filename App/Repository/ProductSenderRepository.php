@@ -23,7 +23,8 @@ class ProductSenderRepository
 
         $count_packages = round(count($data) / 100);
 
-        foreach ($data as $key) {
+        foreach ($data as $key)
+        {
             $start = microtime(true);
 
             $product_id = $this->addProduct($key);
@@ -34,19 +35,20 @@ class ProductSenderRepository
 
             $packageData[] = $key;
 
-            if ($count_packages == $count_add_packages) {
+            if ($count_packages == $count_add_packages)
+            {
                 $this->addPackage($packageData);
                 echo '!!! Отправил Пакет - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
                 $packageData = [];
             }
 
-            if (count($packageData) == 100) {
+            if (count($packageData) == 100)
+            {
                 $start = microtime(true);
                 $this->addPackage($packageData);
                 echo '!!! Отправил Пакет - ' . round(microtime(true) - $start, 3) . ' сек.' . PHP_EOL;
                 $packageData = [];
                 $count_add_packages++;
-
             }
         }
     }
@@ -73,7 +75,8 @@ class ProductSenderRepository
     {
         $data = [];
 
-        foreach ($packageData as $key) {
+        foreach ($packageData as $key)
+        {
             $data[] = ['product_id' => $key['product_id'], 'language_id' => $key['language_id'], 'name' => $key['name'], 'description' => $key['description'], 'meta_title' => $key['meta_title'], 'meta_description' => $key['meta_description']];
         }
 
@@ -84,7 +87,8 @@ class ProductSenderRepository
     {
         $data = [];
 
-        foreach ($packageData as $key) {
+        foreach ($packageData as $key)
+        {
             $data[] = ['product_id' => $key['product_id'], 'image' => $key['image'], 'sort_order' => 0];
         }
 
@@ -95,8 +99,12 @@ class ProductSenderRepository
     {
         $data = [];
 
-        foreach ($packageData as $key) {
-            $data[] = ['product_id' => $key['product_id'], 'category_id' => $key['category_id']];
+        foreach ($packageData as $key)
+        {
+            foreach ($key['category_id'] as $path)
+            {
+                $data[] = ['product_id' => $key['product_id'], 'category_id' => $path];
+            }
         }
 
         $this->db->insert('oc_product_to_category', $data);
@@ -106,7 +114,8 @@ class ProductSenderRepository
     {
         $data = [];
 
-        foreach ($packageData as $key) {
+        foreach ($packageData as $key)
+        {
             $data[] = ['product_id' => $key['product_id'], 'store_id' => $key['store_id']];
         }
 
@@ -117,7 +126,8 @@ class ProductSenderRepository
     {
         $data = [];
 
-        foreach ($packageData as $key) {
+        foreach ($packageData as $key)
+        {
             $data[] = ['product_id' => $key['product_id'], 'renter_id' => $key['renter_id']];
         }
 

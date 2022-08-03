@@ -81,6 +81,11 @@ abstract class Parser
         }
     }
 
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
     public function clearCategories(string $parserClassName)
     {
         $this->db->clear('categories', $parserClassName);

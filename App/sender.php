@@ -8,4 +8,9 @@ require_once 'vendor/autoload.php';
 
 $updater = new ProductService();
 
-$updater->send();
+$updater->send('ParserSantehOrbita');
+
+
+//$updater = new \App\Services\CategoryService();
+//
+//$updater->generateTree();
