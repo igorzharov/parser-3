@@ -211,12 +211,19 @@ class ParserSantehOrbita extends Parser
     {
         try
         {
+            $errorText = $crawler->filter('.intec-content-wrapper .col-xs-12 p .errortext');
+
+            if ($errorText->count() && $errorText->text() == 'Элемент не найден') {
+                return '';
+            }
+
             $title = $crawler->filter('.intec-content-wrapper h1')->text();
 
             return $this->stringToNormal($title);
         }
         catch (\Exception $exception)
         {
+            var_dump($exception->getMessage());
             return '';
         }
     }
